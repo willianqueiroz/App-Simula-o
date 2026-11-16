@@ -1,0 +1,7 @@
+{
+  "name": "autorepasse-form",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Formulário de simulação de financiamento com disparo para grupo de WhatsApp",
+  "engines": { "node": ">=18" }
+}
