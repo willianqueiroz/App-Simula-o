@@ -1,8 +1,14 @@
-// Função serverless da Vercel: recebe o formulário e dispara a mensagem no grupo de WhatsApp.
-// Suporta Z-API e Evolution API (v2). Escolha com a variável PROVIDER.
+// Função serverless da Vercel: valida o formulário e envia o lead para o grupo do Telegram.
+// Variáveis necessárias na Vercel: TELEGRAM_BOT_TOKEN e TELEGRAM_CHAT_ID.
 
-const onlyDigits = (s = '') => String(s).replace(/\D/g, '');
-const clean = (s = '', max = 120) => String(s).replace(/[\r\n*_~`]/g, ' ').trim().slice(0, max);
+const UF_CODES = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+
+const onlyDigits = (s = '') => String(s ?? '').replace(/\D/g, '');
+const clean = (s = '', max = 120) => String(s ?? '').replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const words = s => clean(s).split(' ').filter(Boolean);
+const money = s => Number(onlyDigits(s) || 0) / 100;
+const brl = n => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
 function cpfValido(c) {
   c = onlyDigits(c);
@@ -14,80 +20,95 @@ function cpfValido(c) {
   }
   return true;
 }
-
-function fmtCpf(c) {
-  return onlyDigits(c).replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+function idade(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso ?? ''));
+  if (!m) return null;
+  const y = +m[1], mo = +m[2], d = +m[3];
+  const dt = new Date(Date.UTC(y, mo - 1, d));
+  if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== mo - 1 || dt.getUTCDate() !== d) return null;
+  const hoje = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+  let a = hoje.getFullYear() - y;
+  if (hoje.getMonth() < mo - 1 || (hoje.getMonth() === mo - 1 && hoje.getDate() < d)) a--;
+  return a;
 }
+const fmtData = iso => String(iso).split('-').reverse().join('/');
+const VENDEDORES = ['Willian Queiroz', 'Monica Barbosa', 'Katarina Ferreira', 'Jeezlene', 'RayElle', 'Samara Gomes'];
+const RESTRICAO =['Não', 'Sim', 'Não sei'];
+const PRAZOS = ['O quanto antes', 'Em até 15 dias', 'Em até 30 dias', 'Mais de 30 dias'];
+const fmtCpf = c => onlyDigits(c).replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+const fmtCep = c => onlyDigits(c).replace(/(\d{5})(\d{3})/, '$1-$2');
+const fmtTel = t => {
+  const d = onlyDigits(t);
+  return d.length === 11 ? d.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3') : d.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+};
 
-function fmtData(iso) {
-  const [y, m, d] = String(iso).split('-');
-  return y && m && d ? `${d}/${m}/${y}` : iso;
+// Validação no servidor (nunca confie só no navegador). Devolve a mensagem de erro ou ''.
+function validar(d) {
+  if (!VENDEDORES.includes(clean(d.vendedor, 40))) return 'Escolha o vendedor que está te atendendo.';
+  if (words(d.nome).length < 2) return 'Informe o nome completo.';
+  if (!cpfValido(d.cpf)) return 'CPF inválido.';
+  const anos = idade(d.nascimento);
+  if (anos === null || anos > 110) return 'Data de nascimento inválida.';
+  if (anos < 18) return 'É preciso ter 18 anos ou mais para financiar.';
+  if (clean(d.rg).replace(/[^0-9A-Za-z]/g, '').length < 5) return 'Informe o RG.';
+  if (!UF_CODES.includes(clean(d.rgUf, 2))) return 'Escolha a UF do RG.';
+  if (words(d.mae).length < 2) return 'Informe o nome completo da mãe.';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(clean(d.email, 120))) return 'E-mail inválido.';
+  const tel = onlyDigits(d.whatsapp);
+  if (!(tel.length === 10 || tel.length === 11) || Number(tel.slice(0, 2)) < 11) return 'WhatsApp inválido.';
+  if (!UF_CODES.includes(clean(d.naturalidade, 2))) return 'Escolha a naturalidade.';
+  if (clean(d.cidadeNasc, 80).length < 2) return 'Informe a cidade onde nasceu.';
+  if (onlyDigits(d.cep).length !== 8) return 'CEP inválido.';
+  if (clean(d.endereco).length < 3 || !clean(d.numero) || clean(d.bairro).length < 2 || clean(d.cidade).length < 2) return 'Endereço incompleto.';
+  if (!UF_CODES.includes(clean(d.uf, 2).toUpperCase())) return 'UF do endereço inválida.';
+  if (clean(d.empresa).length < 2 || clean(d.cargo).length < 2) return 'Informe a empresa e o cargo.';
+  if (money(d.renda) <= 0) return 'Informe a renda comprovada.';
+  if (clean(d.carro1).length < 2) return 'Informe pelo menos um carro de interesse.';
+  if (money(d.parcela) <= 0) return 'Informe a parcela esperada.';
+  if (!String(d.entrada ?? '').trim()) return 'Informe a entrada.';
+  if (!['SIM', 'NÃO'].includes(clean(d.cnh, 3))) return 'Informe se tem CNH.';
+  if (!RESTRICAO.includes(clean(d.restricao, 10))) return 'Informe se tem restrição no nome.';
+  if (!PRAZOS.includes(clean(d.prazo, 30))) return 'Informe quando pretende comprar.';
+  return '';
 }
 
 function montarMensagem(d) {
-  const zap = onlyDigits(d.whatsapp);
-  const link = `https://wa.me/55${zap}`;
   const agora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
-  return [
-    '🚗 *NOVO LEAD – OPERADOR DE CRÉDITO SENNA MOTORS*',
-    '',
-    `👤 *Nome:* ${clean(d.nome)}`,
-    `🪪 *CPF:* ${fmtCpf(d.cpf)}`,
-    `🎂 *Nascimento:* ${fmtData(d.nascimento)}`,
-    '',
-    `💰 *Entrada:* ${clean(d.entrada, 30)}`,
-    `📆 *Parcela que cabe:* ${clean(d.parcela, 30)}`,
-    `⏱️ *Quer comprar:* ${clean(d.prazo, 40)}`,
-    '',
-    `⚠️ *Restrição no nome:* ${clean(d.restricao, 20)}`,
-    `🪪 *CNH:* ${clean(d.cnh, 20)}`,
-    '',
-    `📱 *WhatsApp:* ${clean(d.whatsapp, 25)}`,
-    `👉 ${link}`,
-    '',
-    `🕒 ${agora}`
-  ].join('\n');
-}
+  const carros = [d.carro1, d.carro2, d.carro3]
+    .map(c => clean(c, 80))
+    .filter(Boolean)
+    .map((c, i) => `${i + 1}) ${esc(c)}`);
+  const endereco = `${clean(d.endereco)}, nº ${clean(d.numero, 30)} – ${clean(d.bairro)} – ${clean(d.cidade)}/${clean(d.uf, 2).toUpperCase()} – CEP ${fmtCep(d.cep)}`;
 
-async function enviarZapi(texto) {
-  const { ZAPI_INSTANCE, ZAPI_TOKEN, ZAPI_CLIENT_TOKEN, WHATSAPP_GROUP_ID } = process.env;
-  const url = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/send-text`;
-  const headers = { 'Content-Type': 'application/json' };
-  if (ZAPI_CLIENT_TOKEN) headers['Client-Token'] = ZAPI_CLIENT_TOKEN;
-  return fetch(url, { method: 'POST', headers, body: JSON.stringify({ phone: WHATSAPP_GROUP_ID, message: texto }) });
-}
-
-async function enviarEvolution(texto) {
-  const { EVOLUTION_URL, EVOLUTION_INSTANCE, EVOLUTION_APIKEY, WHATSAPP_GROUP_ID } = process.env;
-  const base = EVOLUTION_URL.replace(/\/$/, '');
-  return fetch(`${base}/message/sendText/${EVOLUTION_INSTANCE}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', apikey: EVOLUTION_APIKEY },
-    body: JSON.stringify({ number: WHATSAPP_GROUP_ID, text: texto })
-  });
-}
-
-const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-function montarMensagemTelegram(d) {
-  const zap = onlyDigits(d.whatsapp);
-  const agora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
   return [
     '🚗 <b>NOVO LEAD – OPERADOR DE CRÉDITO SENNA MOTORS</b>',
+    '',
+    `🧑‍💼 <b>Vendedor(a):</b> ${esc(clean(d.vendedor, 40))}`,
     '',
     `👤 <b>Nome:</b> ${esc(clean(d.nome))}`,
     `🪪 <b>CPF:</b> ${esc(fmtCpf(d.cpf))}`,
     `🎂 <b>Nascimento:</b> ${esc(fmtData(d.nascimento))}`,
+    `🪪 <b>RG:</b> ${esc(clean(d.rg, 20))} – ${esc(clean(d.rgUf, 2))}`,
+    `👩 <b>Mãe:</b> ${esc(clean(d.mae))}`,
+    `✉️ <b>E-mail:</b> ${esc(clean(d.email))}`,
+    `📱 <b>WhatsApp:</b> ${esc(fmtTel(d.whatsapp))}`,
+    `👉 https://wa.me/55${onlyDigits(d.whatsapp)}`,
+    `🌎 <b>Naturalidade:</b> ${esc(clean(d.cidadeNasc, 80))}/${esc(clean(d.naturalidade, 2))}`,
     '',
-    `💰 <b>Entrada:</b> ${esc(clean(d.entrada, 30))}`,
-    `📆 <b>Parcela que cabe:</b> ${esc(clean(d.parcela, 30))}`,
-    `⏱️ <b>Quer comprar:</b> ${esc(clean(d.prazo, 40))}`,
+    `📍 <b>Endereço:</b> ${esc(endereco)}`,
     '',
-    `⚠️ <b>Restrição no nome:</b> ${esc(clean(d.restricao, 20))}`,
-    `🪪 <b>CNH:</b> ${esc(clean(d.cnh, 20))}`,
+    `💼 <b>Empresa:</b> ${esc(clean(d.empresa))}`,
+    `🧑‍💼 <b>Cargo:</b> ${esc(clean(d.cargo))}`,
+    `💵 <b>Renda comprovada:</b> ${esc(brl(money(d.renda)))}`,
     '',
-    `📱 <b>WhatsApp:</b> ${esc(clean(d.whatsapp, 25))}`,
-    `👉 https://wa.me/55${zap}`,
+    '🚘 <b>Carros de interesse:</b>',
+    ...carros,
+    '',
+    `💰 <b>Entrada:</b> ${esc(brl(money(d.entrada)))}`,
+    `📆 <b>Parcela esperada:</b> ${esc(brl(money(d.parcela)))}`,
+    `🪪 <b>CNH:</b> ${esc(clean(d.cnh, 3))}`,
+    `⚠️ <b>Restrição no nome:</b> ${esc(clean(d.restricao, 10))}`,
+    `⏱️ <b>Quer comprar:</b> ${esc(clean(d.prazo, 30))}`,
     '',
     `🕒 ${agora}`
   ].join('\n');
@@ -105,36 +126,28 @@ async function enviarTelegram(texto) {
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido.' });
 
-  const d = req.body || {};
+  const d = req.body && typeof req.body === 'object' ? req.body : {};
 
   // Honeypot anti-robô: campo invisível que humano não preenche
-  if (d.empresa) return res.status(200).json({ ok: true });
+  if (d.website) return res.status(200).json({ ok: true });
 
-  // Validação no servidor (nunca confie só no navegador)
-  if (clean(d.nome).split(/\s+/).length < 2) return res.status(400).json({ error: 'Informe o nome completo.' });
-  if (!cpfValido(d.cpf)) return res.status(400).json({ error: 'CPF inválido.' });
-  if (!d.nascimento) return res.status(400).json({ error: 'Informe a data de nascimento.' });
-  if (!d.entrada || !d.parcela) return res.status(400).json({ error: 'Informe entrada e parcela.' });
-  if (onlyDigits(d.whatsapp).length < 10) return res.status(400).json({ error: 'WhatsApp inválido.' });
-  if (!d.prazo || !d.restricao || !d.cnh) return res.status(400).json({ error: 'Preencha todos os campos.' });
+  const erro = validar(d);
+  if (erro) return res.status(400).json({ error: erro });
 
-  const provider = (process.env.PROVIDER || 'telegram').toLowerCase();
+  if (!process.env.TELEGRAM_BOT_TOKEN || !process.env.TELEGRAM_CHAT_ID) {
+    console.error('Variáveis TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID não configuradas.');
+    return res.status(500).json({ error: 'Erro interno. Tente novamente.' });
+  }
 
   try {
-    let r;
-    if (provider === 'telegram') {
-      r = await enviarTelegram(montarMensagemTelegram(d));
-    } else {
-      const texto = montarMensagem(d);
-      r = provider === 'evolution' ? await enviarEvolution(texto) : await enviarZapi(texto);
-    }
+    const r = await enviarTelegram(montarMensagem(d));
     if (!r.ok) {
-      console.error('Falha no WhatsApp:', r.status, await r.text());
+      console.error('Falha no Telegram:', r.status, await r.text());
       return res.status(502).json({ error: 'Não foi possível avisar a equipe agora. Tente novamente em instantes.' });
     }
     return res.status(200).json({ ok: true });
   } catch (e) {
-    console.error('Erro ao enviar:', e);
+    console.error('Erro ao enviar:', e && e.message);
     return res.status(500).json({ error: 'Erro interno. Tente novamente.' });
   }
 };
