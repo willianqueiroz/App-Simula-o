@@ -22,14 +22,28 @@
   p.sub { margin:0; color:var(--muted); font-size:17px; }
   p.sub b { color:var(--ink); }
   form { background:var(--card); border:1px solid var(--line); border-top:3px solid var(--brand); border-radius:14px; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,.45); }
-  label { display:block; font-weight:600; font-size:14px; margin:16px 0 6px; }
-  label:first-of-type { margin-top:0; }
+  .sec { margin:28px 0 4px; padding-top:18px; border-top:1px solid var(--line); font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--brand2); font-weight:800; }
+  .sec:first-child { margin-top:0; padding-top:0; border-top:0; }
+  .f { margin-top:14px; }
+  label { display:block; font-weight:600; font-size:14px; margin:0 0 6px; }
+  label .opt { color:var(--muted); font-weight:400; }
   input, select { width:100%; padding:13px 12px; font-size:16px; border:1px solid var(--line); border-radius:10px; background:var(--card2); color:var(--ink); }
   input::placeholder { color:#6d6d78; }
   input:focus, select:focus { outline:2px solid var(--brand); border-color:transparent; }
-  .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .check { display:flex; gap:10px; align-items:flex-start; margin-top:18px; font-size:13px; color:var(--muted); }
+  input[readonly] { background:#101013; color:#c9c9d1; }
+  .f.bad input, .f.bad select { border-color:var(--err); }
+  .f.good input, .f.good select { border-color:var(--ok); }
+  .hint { font-size:12.5px; margin-top:5px; color:var(--muted); min-height:0; }
+  .f.bad .hint { color:var(--err); }
+  .f.good .hint { color:var(--ok); }
+  .row { display:grid; gap:12px; }
+  .r21 { grid-template-columns:3fr 2fr; }
+  .r12 { grid-template-columns:1fr 2fr; }
+  .r31 { grid-template-columns:3fr 1fr; }
+  .r11 { grid-template-columns:1fr 1fr; }
+  .check { display:flex; gap:10px; align-items:flex-start; margin-top:22px; font-size:13px; color:var(--muted); }
   .check input { width:auto; margin-top:2px; accent-color:var(--brand); }
+  .check label { font-weight:400; margin:0; font-size:13px; }
   button { width:100%; margin-top:20px; padding:15px; font-size:17px; font-weight:800; letter-spacing:.03em; text-transform:uppercase; color:#fff; background:linear-gradient(180deg,var(--brand2),var(--brand)); border:0; border-radius:10px; cursor:pointer; box-shadow:0 6px 18px rgba(225,6,0,.35); }
   button:disabled { opacity:.6; cursor:wait; }
   .msg { margin-top:14px; padding:12px; border-radius:10px; font-size:15px; display:none; }
@@ -48,69 +62,221 @@
     <p class="sub"><b>Descubra quanto libera pra você em minutos.</b></p>
   </div>
 
-  <form id="f" novalidate>
-    <label for="nome">Nome completo</label>
-    <input id="nome" name="nome" autocomplete="name" required>
+  <form id="f" novalidate autocomplete="on">
 
-    <div class="row">
-      <div>
-        <label for="cpf">CPF</label>
-        <input id="cpf" name="cpf" inputmode="numeric" placeholder="000.000.000-00" required>
+    <div class="sec">Atendimento</div>
+
+    <div class="f" id="f-vendedor">
+      <label for="vendedor">Nome do vendedor que está te atendendo</label>
+      <select id="vendedor" name="vendedor" required>
+        <option value="">Selecione</option>
+        <option value="Willian Queiroz">Willian Queiroz</option>
+        <option value="Monica Barbosa">Monica Barbosa</option>
+        <option value="Katarina Ferreira">Katarina Ferreira</option>
+        <option value="Jeezlene">Jeezlene</option>
+        <option value="RayElle">RayElle</option>
+        <option value="Samara Gomes">Samara Gomes</option>
+      </select>
+      <div class="hint"></div>
+    </div>
+
+    <div class="sec">Dados pessoais</div>
+
+    <div class="f" id="f-nome">
+      <label for="nome">Nome completo</label>
+      <input id="nome" name="nome" autocomplete="name" required>
+      <div class="hint"></div>
+    </div>
+
+    <div class="f" id="f-cpf">
+      <label for="cpf">CPF</label>
+      <input id="cpf" name="cpf" inputmode="numeric" placeholder="000.000.000-00" autocomplete="off" required>
+      <div class="hint">Digite apenas os números.</div>
+    </div>
+
+    <div class="f" id="f-nascimento">
+      <label for="nascimento">Data de nascimento</label>
+      <input id="nascimento" name="nascimento" type="date" min="1900-01-01" autocomplete="bday" required>
+      <div class="hint"></div>
+    </div>
+
+    <div class="row r21">
+      <div class="f" id="f-rg">
+        <label for="rg">RG</label>
+        <input id="rg" name="rg" autocomplete="off" required>
+        <div class="hint"></div>
       </div>
-      <div>
-        <label for="nascimento">Data de nascimento</label>
-        <input id="nascimento" name="nascimento" type="date" required>
+      <div class="f" id="f-rgUf">
+        <label for="rgUf">UF do RG</label>
+        <select id="rgUf" name="rgUf" data-uf required></select>
+        <div class="hint"></div>
       </div>
     </div>
 
-    <div class="row">
-      <div>
-        <label for="entrada">Entrada (R$)</label>
-        <input id="entrada" name="entrada" inputmode="numeric" placeholder="R$ 0,00" required>
+    <div class="f" id="f-mae">
+      <label for="mae">Nome completo da mãe</label>
+      <input id="mae" name="mae" autocomplete="off" required>
+      <div class="hint"></div>
+    </div>
+
+    <div class="f" id="f-email">
+      <label for="email">E-mail</label>
+      <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" required>
+      <div class="hint"></div>
+    </div>
+
+    <div class="f" id="f-whatsapp">
+      <label for="whatsapp">WhatsApp</label>
+      <input id="whatsapp" name="whatsapp" type="tel" inputmode="numeric" placeholder="(61) 90000-0000" autocomplete="tel" required>
+      <div class="hint"></div>
+    </div>
+
+    <div class="f" id="f-naturalidade">
+      <label for="naturalidade">Naturalidade (estado onde nasceu)</label>
+      <select id="naturalidade" name="naturalidade" data-uf required></select>
+      <div class="hint"></div>
+    </div>
+
+    <div class="f" id="f-cidadeNasc">
+      <label for="cidadeNasc">Cidade onde nasceu</label>
+      <input id="cidadeNasc" name="cidadeNasc" list="cidadesNasc" autocomplete="off" placeholder="Escolha o estado primeiro" disabled required>
+      <datalist id="cidadesNasc"></datalist>
+      <div class="hint"></div>
+    </div>
+
+    <div class="sec">Endereço</div>
+
+    <div class="f" id="f-cep">
+      <label for="cep">CEP</label>
+      <input id="cep" name="cep" inputmode="numeric" placeholder="00000-000" autocomplete="postal-code" required>
+      <div class="hint">Ao digitar o CEP, o endereço é preenchido sozinho.</div>
+    </div>
+
+    <div class="f" id="f-endereco">
+      <label for="endereco">Endereço</label>
+      <input id="endereco" name="endereco" autocomplete="off" readonly required>
+      <div class="hint"></div>
+    </div>
+
+    <div class="row r12">
+      <div class="f" id="f-numero">
+        <label for="numero">Nº da casa</label>
+        <input id="numero" name="numero" autocomplete="off" placeholder="Ex.: 123" required>
+        <div class="hint"></div>
       </div>
-      <div>
-        <label for="parcela">Parcela que cabe (R$)</label>
+      <div class="f" id="f-bairro">
+        <label for="bairro">Bairro</label>
+        <input id="bairro" name="bairro" autocomplete="off" readonly required>
+        <div class="hint"></div>
+      </div>
+    </div>
+
+    <div class="row r31">
+      <div class="f" id="f-cidade">
+        <label for="cidade">Cidade</label>
+        <input id="cidade" name="cidade" autocomplete="off" readonly required>
+        <div class="hint"></div>
+      </div>
+      <div class="f" id="f-uf">
+        <label for="uf">UF</label>
+        <input id="uf" name="uf" maxlength="2" autocomplete="off" readonly required>
+        <div class="hint"></div>
+      </div>
+    </div>
+
+    <div class="sec">Trabalho e renda</div>
+
+    <div class="f" id="f-empresa">
+      <label for="empresa">Empresa em que trabalha</label>
+      <input id="empresa" name="empresa" autocomplete="organization" required>
+      <div class="hint"></div>
+    </div>
+
+    <div class="f" id="f-cargo">
+      <label for="cargo">Cargo</label>
+      <input id="cargo" name="cargo" autocomplete="organization-title" required>
+      <div class="hint"></div>
+    </div>
+
+    <div class="f" id="f-renda">
+      <label for="renda">Renda comprovada</label>
+      <input id="renda" name="renda" inputmode="numeric" placeholder="R$ 0,00" required>
+      <div class="hint"></div>
+    </div>
+
+    <div class="sec">Carros de interesse</div>
+
+    <div class="f" id="f-carro1">
+      <label for="carro1">Carro de interesse 01</label>
+      <input id="carro1" name="carro1" autocomplete="off" placeholder="Ex.: Onix 2022" required>
+      <div class="hint"></div>
+    </div>
+
+    <div class="f" id="f-carro2">
+      <label for="carro2">Carro de interesse 02 <span class="opt">(opcional)</span></label>
+      <input id="carro2" name="carro2" autocomplete="off">
+      <div class="hint"></div>
+    </div>
+
+    <div class="f" id="f-carro3">
+      <label for="carro3">Carro de interesse 03 <span class="opt">(opcional)</span></label>
+      <input id="carro3" name="carro3" autocomplete="off">
+      <div class="hint"></div>
+    </div>
+
+    <div class="sec">Condições</div>
+
+    <div class="row r11">
+      <div class="f" id="f-parcela">
+        <label for="parcela">Parcela esperada</label>
         <input id="parcela" name="parcela" inputmode="numeric" placeholder="R$ 0,00" required>
+        <div class="hint"></div>
+      </div>
+      <div class="f" id="f-entrada">
+        <label for="entrada">Entrada</label>
+        <input id="entrada" name="entrada" inputmode="numeric" placeholder="R$ 0,00" required>
+        <div class="hint"></div>
       </div>
     </div>
 
-    <label for="whatsapp">Seu WhatsApp</label>
-    <input id="whatsapp" name="whatsapp" type="tel" inputmode="numeric" placeholder="(61) 90000-0000" autocomplete="tel" required>
-
-    <label for="prazo">Quando pretende comprar?</label>
-    <select id="prazo" name="prazo" required>
-      <option value="">Selecione</option>
-      <option>O quanto antes</option>
-      <option>Em até 15 dias</option>
-      <option>Em até 30 dias</option>
-      <option>Mais de 30 dias</option>
-    </select>
-
-    <div class="row">
-      <div>
-        <label for="restricao">Restrição no nome?</label>
-        <select id="restricao" name="restricao" required>
-          <option value="">Selecione</option>
-          <option>Não</option>
-          <option>Sim</option>
-          <option>Não sei</option>
-        </select>
-      </div>
-      <div>
-        <label for="cnh">Possui CNH?</label>
-        <select id="cnh" name="cnh" required>
-          <option value="">Selecione</option>
-          <option>Sim</option>
-          <option>Não</option>
-        </select>
-      </div>
+    <div class="f" id="f-cnh">
+      <label for="cnh">Tem CNH?</label>
+      <select id="cnh" name="cnh" required>
+        <option value="">Selecione</option>
+        <option value="SIM">SIM</option>
+        <option value="NÃO">NÃO</option>
+      </select>
+      <div class="hint"></div>
     </div>
 
-    <input class="hp" name="empresa" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <div class="f" id="f-restricao">
+      <label for="restricao">Tem restrição no nome?</label>
+      <select id="restricao" name="restricao" required>
+        <option value="">Selecione</option>
+        <option value="Não">Não</option>
+        <option value="Sim">Sim</option>
+        <option value="Não sei">Não sei</option>
+      </select>
+      <div class="hint"></div>
+    </div>
+
+    <div class="f" id="f-prazo">
+      <label for="prazo">Quando pretende comprar o carro?</label>
+      <select id="prazo" name="prazo" required>
+        <option value="">Selecione</option>
+        <option value="O quanto antes">O quanto antes</option>
+        <option value="Em até 15 dias">Em até 15 dias</option>
+        <option value="Em até 30 dias">Em até 30 dias</option>
+        <option value="Mais de 30 dias">Mais de 30 dias</option>
+      </select>
+      <div class="hint"></div>
+    </div>
+
+    <input class="hp" name="website" id="website" tabindex="-1" autocomplete="off" aria-hidden="true">
 
     <div class="check">
       <input type="checkbox" id="consent" required>
-      <label for="consent" style="font-weight:400;margin:0">Concordo que meus dados sejam usados pela Senna Motors para simulação de crédito e contato por WhatsApp (LGPD).</label>
+      <label for="consent">Concordo que meus dados pessoais sejam usados pela Senna Motors para análise de crédito e contato por WhatsApp (LGPD).</label>
     </div>
 
     <button id="btn" type="submit">Descobrir quanto libera</button>
@@ -122,27 +288,48 @@
 
 <script>
 const $ = id => document.getElementById(id);
-const digits = s => s.replace(/\D/g, '');
+const digits = s => String(s || '').replace(/\D/g, '');
+const words = s => String(s || '').trim().split(/\s+/).filter(Boolean);
 
-// Máscaras
-$('cpf').addEventListener('input', e => {
-  let v = digits(e.target.value).slice(0, 11);
-  v = v.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-  e.target.value = v;
+const UFS = [['AC','Acre'],['AL','Alagoas'],['AP','Amapá'],['AM','Amazonas'],['BA','Bahia'],['CE','Ceará'],['DF','Distrito Federal'],['ES','Espírito Santo'],['GO','Goiás'],['MA','Maranhão'],['MT','Mato Grosso'],['MS','Mato Grosso do Sul'],['MG','Minas Gerais'],['PA','Pará'],['PB','Paraíba'],['PR','Paraná'],['PE','Pernambuco'],['PI','Piauí'],['RJ','Rio de Janeiro'],['RN','Rio Grande do Norte'],['RS','Rio Grande do Sul'],['RO','Rondônia'],['RR','Roraima'],['SC','Santa Catarina'],['SP','São Paulo'],['SE','Sergipe'],['TO','Tocantins']];
+const UF_CODES = UFS.map(u => u[0]);
+
+document.querySelectorAll('select[data-uf]').forEach(sel => {
+  sel.innerHTML = '<option value="">Selecione</option>' + UFS.map(([s, n]) => `<option value="${s}">${s} – ${n}</option>`).join('');
 });
-$('whatsapp').addEventListener('input', e => {
-  let v = digits(e.target.value).slice(0, 11);
-  if (v.length > 6) v = v.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
-  else if (v.length > 2) v = v.replace(/(\d{2})(\d{0,5})/, '($1) $2');
-  e.target.value = v;
-});
-function moneyMask(e) {
-  const n = digits(e.target.value);
-  e.target.value = n ? (Number(n) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '';
+
+// ---------- estado visual de cada campo ----------
+function setState(id, state, msg) {
+  const box = $('f-' + id);
+  if (!box) return;
+  box.classList.remove('good', 'bad');
+  if (state) box.classList.add(state);
+  if (msg !== undefined) box.querySelector('.hint').textContent = msg;
 }
-$('entrada').addEventListener('input', moneyMask);
-$('parcela').addEventListener('input', moneyMask);
 
+// ---------- máscaras ----------
+function maskCpf(v) {
+  v = digits(v).slice(0, 11);
+  return v.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+}
+function maskPhone(v) {
+  v = digits(v).slice(0, 11);
+  if (v.length > 10) return v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  if (v.length > 6) return v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+  if (v.length > 2) return v.replace(/(\d{2})(\d{0,5})/, '($1) $2');
+  return v;
+}
+function maskCep(v) {
+  v = digits(v).slice(0, 8);
+  return v.length > 5 ? v.slice(0, 5) + '-' + v.slice(5) : v;
+}
+function maskMoney(v) {
+  const n = digits(v);
+  return n ? (Number(n) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '';
+}
+const moneyValue = v => Number(digits(v) || 0) / 100;
+
+// ---------- validações ----------
 function cpfValido(c) {
   c = digits(c);
   if (c.length !== 11 || /^(\d)\1+$/.test(c)) return false;
@@ -153,7 +340,187 @@ function cpfValido(c) {
   }
   return true;
 }
+const nomeValido = v => /^[A-Za-zÀ-ÿ'’. -]+$/.test(v.trim()) && words(v).length >= 2 && words(v).every(w => w.length >= 1) && v.trim().length >= 5;
+const emailValido = v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
+const telValido = v => { const d = digits(v); return (d.length === 10 || d.length === 11) && Number(d.slice(0, 2)) >= 11 && (d.length === 10 || d[2] === '9'); };
+const rgValido = v => v.replace(/[^0-9A-Za-z]/g, '').length >= 5;
+function idade(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  if (!m) return null;
+  const y = +m[1], mo = +m[2], d = +m[3];
+  const dt = new Date(y, mo - 1, d);
+  if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== d) return null;
+  const hoje = new Date();
+  let a = hoje.getFullYear() - y;
+  if (hoje.getMonth() < mo - 1 || (hoje.getMonth() === mo - 1 && hoje.getDate() < d)) a--;
+  return a;
+}
+// só aceita quem já tem 18 anos (a data máxima do calendário acompanha o dia de hoje)
+(() => {
+  const h = new Date();
+  $('nascimento').max = (h.getFullYear() - 18) + '-' + String(h.getMonth() + 1).padStart(2, '0') + '-' + String(h.getDate()).padStart(2, '0');
+})();
 
+// ---------- cidade onde nasceu (lista oficial do IBGE, por estado) ----------
+const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+let cidadesLista = [];
+let cidadesSeq = 0;
+
+async function carregaCidades(uf) {
+  const seq = ++cidadesSeq;
+  const inp = $('cidadeNasc');
+  cidadesLista = [];
+  $('cidadesNasc').innerHTML = '';
+  inp.value = '';
+  setState('cidadeNasc', '', '');
+  if (!uf) {
+    inp.disabled = true;
+    inp.placeholder = 'Escolha o estado primeiro';
+    return;
+  }
+  inp.disabled = false;
+  inp.placeholder = 'Digite e escolha a cidade';
+  try {
+    const r = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados/' + uf + '/municipios?orderBy=nome');
+    if (!r.ok) throw new Error('http ' + r.status);
+    const j = await r.json();
+    if (seq !== cidadesSeq) return;
+    cidadesLista = j.map(m => m.nome);
+    $('cidadesNasc').innerHTML = cidadesLista.map(n => `<option value="${n.replace(/"/g, '&quot;')}"></option>`).join('');
+    setState('cidadeNasc', '', 'Comece a digitar e escolha da lista.');
+  } catch (err) {
+    if (seq !== cidadesSeq) return;
+    setState('cidadeNasc', '', 'Digite o nome da cidade onde nasceu.');
+  }
+}
+
+// cada regra devolve '' (ok) ou a mensagem de erro
+const RULES = {
+  vendedor: v => v ? '' : 'Escolha o vendedor que está te atendendo.',
+  nome:   v => nomeValido(v) ? '' : 'Informe o nome completo, com nome e sobrenome.',
+  cpf:    v => digits(v).length < 11 ? 'Digite os 11 números do CPF.' : (cpfValido(v) ? '' : 'CPF inválido. Confira os números.'),
+  nascimento: v => { const a = idade(v); return a === null || a > 110 ? 'Informe uma data de nascimento válida.' : (a < 18 ? 'É preciso ter 18 anos ou mais para financiar.' : ''); },
+  restricao: v => v ? '' : 'Escolha uma opção.',
+  prazo:  v => v ? '' : 'Escolha uma opção.',
+  rg:     v => rgValido(v) ? '' : 'Informe o número do RG.',
+  rgUf:   v => v ? '' : 'Escolha a UF do RG.',
+  mae:    v => nomeValido(v) ? '' : 'Informe o nome completo da mãe.',
+  email:  v => emailValido(v) ? '' : 'E-mail inválido. Exemplo: nome@email.com',
+  whatsapp: v => telValido(v) ? '' : 'WhatsApp inválido. Use DDD + número.',
+  naturalidade: v => v ? '' : 'Escolha o estado.',
+  cidadeNasc: v => {
+    if (!$('naturalidade').value) return 'Escolha o estado primeiro.';
+    if (v.trim().length < 2) return 'Informe a cidade onde nasceu.';
+    if (cidadesLista.length && !cidadesLista.some(n => norm(n) === norm(v))) return 'Escolha uma cidade da lista.';
+    return '';
+  },
+  cep:    v => digits(v).length === 8 ? '' : 'Digite os 8 números do CEP.',
+  endereco: v => v.trim().length >= 3 ? '' : 'Informe o endereço.',
+  numero: v => v.trim() ? '' : 'Informe o número da casa.',
+  bairro: v => v.trim().length >= 2 ? '' : 'Informe o bairro.',
+  cidade: v => v.trim().length >= 2 ? '' : 'Informe a cidade.',
+  uf:     v => UF_CODES.includes(v.trim().toUpperCase()) ? '' : 'UF inválida.',
+  empresa: v => v.trim().length >= 2 ? '' : 'Informe a empresa em que trabalha.',
+  cargo:  v => v.trim().length >= 2 ? '' : 'Informe o cargo.',
+  renda:  v => moneyValue(v) > 0 ? '' : 'Informe a renda comprovada.',
+  carro1: v => v.trim().length >= 2 ? '' : 'Informe pelo menos um carro de interesse.',
+  parcela: v => moneyValue(v) > 0 ? '' : 'Informe a parcela esperada.',
+  entrada: v => v.trim() ? '' : 'Informe a entrada (pode ser R$ 0,00).',
+  cnh:    v => v ? '' : 'Escolha SIM ou NÃO.'
+};
+const ORDER = ['vendedor','nome','cpf','nascimento','rg','rgUf','mae','email','whatsapp','naturalidade','cidadeNasc','cep','endereco','numero','bairro','cidade','uf','empresa','cargo','renda','carro1','parcela','entrada','cnh','restricao','prazo'];
+
+function check(id, showOk = true) {
+  const el = $(id);
+  const err = RULES[id](el.value);
+  if (err) { setState(id, 'bad', err); return false; }
+  setState(id, showOk ? 'good' : '', id === 'cpf' ? 'CPF válido.' : '');
+  return true;
+}
+
+// ---------- ligações de cada campo ----------
+$('cpf').addEventListener('input', e => {
+  e.target.value = maskCpf(e.target.value);
+  const n = digits(e.target.value).length;
+  if (n < 11) setState('cpf', '', 'Digite apenas os números.');
+  else check('cpf');
+});
+$('cpf').addEventListener('blur', () => { if ($('cpf').value) check('cpf'); });
+
+$('whatsapp').addEventListener('input', e => { e.target.value = maskPhone(e.target.value); if ($('f-whatsapp').classList.contains('bad')) check('whatsapp'); });
+$('whatsapp').addEventListener('blur', () => { if ($('whatsapp').value) check('whatsapp'); });
+
+['renda', 'parcela', 'entrada'].forEach(id => {
+  $(id).addEventListener('input', e => { e.target.value = maskMoney(e.target.value); if ($('f-' + id).classList.contains('bad')) check(id); });
+});
+
+['nome', 'mae', 'rg', 'email', 'empresa', 'cargo', 'carro1', 'numero'].forEach(id => {
+  $(id).addEventListener('blur', () => { if ($(id).value) check(id); });
+  $(id).addEventListener('input', () => { if ($('f-' + id).classList.contains('bad')) check(id); });
+});
+['vendedor', 'rgUf', 'naturalidade', 'cnh', 'restricao', 'prazo', 'nascimento'].forEach(id => $(id).addEventListener('change', () => check(id)));
+$('naturalidade').addEventListener('change', e => carregaCidades(e.target.value));
+function ajustaCidade() {
+  const inp = $('cidadeNasc');
+  const achou = cidadesLista.find(n => norm(n) === norm(inp.value));
+  if (achou) inp.value = achou; // grafia oficial (acentos e maiúsculas)
+  if (inp.value) check('cidadeNasc');
+}
+$('cidadeNasc').addEventListener('change', ajustaCidade);
+$('cidadeNasc').addEventListener('blur', ajustaCidade);
+$('cidadeNasc').addEventListener('input', () => { if ($('f-cidadeNasc').classList.contains('bad')) check('cidadeNasc'); });
+
+// ---------- CEP: preenche o endereço sozinho (ViaCEP) ----------
+const ADDR = ['endereco', 'bairro', 'cidade', 'uf'];
+function lockAddr(lock) { ADDR.forEach(id => { $(id).readOnly = lock; }); }
+function clearAddr() { ADDR.forEach(id => { $(id).value = ''; setState(id, '', ''); }); lockAddr(true); }
+let cepSeq = 0;
+
+async function buscaCep(cep) {
+  const seq = ++cepSeq;
+  setState('cep', '', 'Buscando endereço...');
+  try {
+    const r = await fetch('https://viacep.com.br/ws/' + cep + '/json/');
+    if (!r.ok) throw new Error('http ' + r.status);
+    const j = await r.json();
+    if (seq !== cepSeq) return;
+    if (j.erro) {
+      clearAddr();
+      return setState('cep', 'bad', 'CEP não encontrado. Confira os números.');
+    }
+    $('endereco').value = j.logradouro || '';
+    $('bairro').value = j.bairro || '';
+    $('cidade').value = j.localidade || '';
+    $('uf').value = (j.uf || '').toUpperCase();
+    lockAddr(true);
+    // CEP genérico (cidade pequena): rua e/ou bairro vêm vazios, então liberamos para digitar
+    if (!j.logradouro) $('endereco').readOnly = false;
+    if (!j.bairro) $('bairro').readOnly = false;
+    ADDR.forEach(id => setState(id, '', ''));
+    setState('cep', 'good', 'Endereço encontrado. Falta só o número da casa.');
+    $(j.logradouro ? 'numero' : 'endereco').focus();
+  } catch (err) {
+    if (seq !== cepSeq) return;
+    // sem internet com o ViaCEP: deixa digitar o endereço à mão
+    lockAddr(false);
+    setState('cep', '', 'Não foi possível buscar o CEP agora. Preencha o endereço manualmente.');
+  }
+}
+
+$('cep').addEventListener('input', e => {
+  e.target.value = maskCep(e.target.value);
+  const c = digits(e.target.value);
+  if (c.length < 8) {
+    cepSeq++;
+    clearAddr();
+    setState('cep', '', 'Ao digitar o CEP, o endereço é preenchido sozinho.');
+  } else {
+    buscaCep(c);
+  }
+});
+$('uf').addEventListener('input', e => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g, ''); });
+
+// ---------- envio ----------
 function show(type, text) {
   const m = $('msg');
   m.className = 'msg ' + type;
@@ -163,15 +530,27 @@ function show(type, text) {
 $('f').addEventListener('submit', async e => {
   e.preventDefault();
   const f = e.target;
-  const d = Object.fromEntries(new FormData(f).entries());
+  if ($('website').value) return; // anti-robô
 
-  if (d.nome.trim().split(/\s+/).length < 2) return show('err', 'Informe o nome completo.');
-  if (!cpfValido(d.cpf)) return show('err', 'CPF inválido.');
-  if (!d.nascimento) return show('err', 'Informe a data de nascimento.');
-  if (!d.entrada || !d.parcela) return show('err', 'Informe a entrada e a parcela.');
-  if (digits(d.whatsapp).length < 10) return show('err', 'WhatsApp inválido.');
-  if (!d.prazo || !d.restricao || !d.cnh) return show('err', 'Preencha todos os campos.');
-  if (!$('consent').checked) return show('err', 'É necessário aceitar o termo para continuar.');
+  // valida tudo, na ordem do formulário, e leva o cliente ao primeiro erro
+  let first = null;
+  for (const id of ORDER) {
+    if (!check(id, false) && !first) first = id;
+  }
+  if (!first && !$('consent').checked) {
+    show('err', 'É necessário aceitar o termo para continuar.');
+    return;
+  }
+  if (first) {
+    show('err', 'Confira os campos em vermelho.');
+    $('f-' + first).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    $(first).focus({ preventScroll: true });
+    return;
+  }
+
+  const d = {};
+  [...ORDER, 'carro2', 'carro3', 'website'].forEach(id => { d[id] = $(id).value.trim(); });
+  d.uf = d.uf.toUpperCase();
 
   const btn = $('btn');
   btn.disabled = true; btn.textContent = 'Enviando...';
@@ -184,7 +563,13 @@ $('f').addEventListener('submit', async e => {
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || 'Erro ao enviar.');
     f.reset();
+    clearAddr();
+    carregaCidades('');
+    document.querySelectorAll('.f').forEach(b => b.classList.remove('good', 'bad'));
+    setState('cpf', '', 'Digite apenas os números.');
+    setState('cep', '', 'Ao digitar o CEP, o endereço é preenchido sozinho.');
     show('ok', 'Recebemos seus dados! Em instantes um operador da Senna Motors chama você no WhatsApp.');
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   } catch (err) {
     show('err', err.message || 'Não foi possível enviar. Tente novamente.');
   } finally {
