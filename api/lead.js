@@ -32,7 +32,7 @@ function idade(iso) {
   return a;
 }
 const fmtData = iso => String(iso).split('-').reverse().join('/');
-const VENDEDORES = ['Willian Queiroz', 'Monica Barbosa', 'Katarina Ferreira', 'Jeezlene', 'RayElle', 'Samara Gomes'];
+const VENDEDORES = ['Willian Queiroz', 'Monica Barbosa', 'Katarina Ferreira', 'Jeezlene', 'RayElle', 'Samara Gomes', 'Priscila Castro'];
 const RESTRICAO =['Não', 'Sim', 'Não sei'];
 const PRAZOS = ['O quanto antes', 'Em até 15 dias', 'Em até 30 dias', 'Mais de 30 dias'];
 const fmtCpf = c => onlyDigits(c).replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
